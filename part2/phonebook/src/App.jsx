@@ -1,12 +1,22 @@
 import { useEffect, useState } from 'react'
 import personService from './services/persons'
 
-const Notification = ({ message }) => {
+const Notification = ({ message, isError }) => {
   if (message === null) {
     return null
   }
 
-  return <div>{message}</div>
+  const style = {
+    color: isError ? 'red' : 'green',
+    background: 'lightgrey',
+    fontSize: 20,
+    borderStyle: 'solid',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  }
+
+  return <div style={style}>{message}</div>
 }
 
 const Filter = ({ filter, onFilterChange }) => {
@@ -59,20 +69,21 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
   const [message, setMessage] = useState(null)
+  const [isError, setIsError] = useState(false)
 
   useEffect(() => {
-    personService
-      .getAll()
-      .then((response) => {
-        setPersons(response.data)
-      })
+    personService.getAll().then((response) => {
+      setPersons(response.data)
+    })
   }, [])
 
-  const showNotification = (text) => {
+  const showNotification = (text, error = false) => {
     setMessage(text)
+    setIsError(error)
 
     setTimeout(() => {
       setMessage(null)
+      setIsError(false)
     }, 5000)
   }
 
@@ -107,16 +118,21 @@ const App = () => {
 
             showNotification(`${response.data.name}'s number updated`)
           })
-          .catch(() => {
-            showNotification(
-              `Information of ${existingPerson.name} has already been removed from server`
-            )
+          .catch((error) => {
+            if (error.response) {
+              showNotification(error.response.data.error, true)
+            } else {
+              showNotification(
+                `Information of ${existingPerson.name} has already been removed from server`,
+                true
+              )
 
-            setPersons(
-              persons.filter((person) => {
-                return person.id !== existingPerson.id
-              })
-            )
+              setPersons(
+                persons.filter((person) => {
+                  return person.id !== existingPerson.id
+                })
+              )
+            }
           })
       }
 
@@ -136,6 +152,9 @@ const App = () => {
         setPersons(persons.concat(response.data))
         showNotification(`${response.data.name} added`)
       })
+      .catch((error) => {
+        showNotification(error.response.data.error, true)
+      })
 
     setNewName('')
     setNewNumber('')
@@ -145,15 +164,13 @@ const App = () => {
     const answer = window.confirm(`Delete ${person.name}?`)
 
     if (answer) {
-      personService
-        .remove(person.id)
-        .then(() => {
-          setPersons(
-            persons.filter((item) => {
-              return item.id !== person.id
-            })
-          )
-        })
+      personService.remove(person.id).then(() => {
+        setPersons(
+          persons.filter((item) => {
+            return item.id !== person.id
+          })
+        )
+      })
     }
   }
 
@@ -177,12 +194,9 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
-      <Notification message={message} />
+      <Notification message={message} isError={isError} />
 
-      <Filter
-        filter={filter}
-        onFilterChange={handleFilterChange}
-      />
+      <Filter filter={filter} onFilterChange={handleFilterChange} />
 
       <h3>add a new</h3>
 
@@ -196,10 +210,7 @@ const App = () => {
 
       <h3>Numbers</h3>
 
-      <Persons
-        persons={personsToShow}
-        onDelete={deletePerson}
-      />
+      <Persons persons={personsToShow} onDelete={deletePerson} />
     </div>
   )
 }
