@@ -21,4 +21,34 @@ blogsRouter.post('/', async (request, response, next) => {
   }
 })
 
+blogsRouter.delete('/:id', async (request, response, next) => {
+  try {
+    await Blog.findByIdAndDelete(request.params.id)
+    response.status(204).end()
+  } catch (error) {
+    next(error)
+  }
+})
+
+blogsRouter.put('/:id', async (request, response, next) => {
+  try {
+    const body = request.body
+
+    const updatedBlog = await Blog.findByIdAndUpdate(
+      request.params.id,
+      {
+        title: body.title,
+        author: body.author,
+        url: body.url,
+        likes: body.likes,
+      },
+      { returnDocument: 'after' }
+    )
+
+    response.json(updatedBlog)
+  } catch (error) {
+    next(error)
+  }
+})
+
 module.exports = blogsRouter
