@@ -12,7 +12,7 @@ const Blog = ({ blog, updateLikes, removeBlog, user }) => {
     borderWidth: 1,
     marginBottom: 5,
   }
-  const canRemove = blog.user?.username === user.username
+  const canRemove = blog.user?.username === user?.username
 
   return (
     <div style={blogStyle}>
