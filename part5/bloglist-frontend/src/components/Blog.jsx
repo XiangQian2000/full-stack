@@ -15,7 +15,7 @@ const Blog = ({ blog, updateLikes, removeBlog, user }) => {
   const canRemove = blog.user?.username === user?.username
 
   return (
-    <div style={blogStyle}>
+    <div className="blog" style={blogStyle}>
       <div style={hideWhenVisible}>
         {blog.title} {blog.author}
         <button onClick={() => setVisible(true)}>view</button>
